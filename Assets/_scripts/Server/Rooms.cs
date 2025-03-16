@@ -1,4 +1,5 @@
-﻿using Photon.Pun;
+﻿using _scripts.Generics;
+using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
 using UnityEngine;
@@ -47,7 +48,7 @@ namespace _scripts.Server
         public override void OnCreateRoomFailed(short returnCode, string message)
         {
             base.OnCreateRoomFailed(returnCode, message);
-
+            MessagePanel.Instance.ShowMessage($"Room Creation Failed!\nCode: {returnCode} Error: {message}");
             print($"Room Creation Failed!\nCode: {returnCode} Error: {message}");
         }
 
@@ -63,6 +64,7 @@ namespace _scripts.Server
         {
             base.OnJoinRoomFailed(returnCode, message);
 
+            MessagePanel.Instance.ShowMessage($"Room Connection Failed!\nCode: {returnCode} Error: {message}");
             print($"Room Connection Failed!\nCode: {returnCode} Error: {message}");
         }
 
