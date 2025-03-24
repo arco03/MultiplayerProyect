@@ -1,44 +1,49 @@
 ﻿using _scripts.Generics;
-using ExitGames.Client.Photon;
 using Photon.Pun;
 using UnityEngine;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 
-public class PlayerSpawner : MonoBehaviourPunCallbacks
+namespace _scripts.Player
 {
-    [SerializeField] private Vector3[] spawnPoints;
-
-    private void Start()
+    public class PlayerSpawner : MonoBehaviourPunCallbacks
     {
-        SpawnPlayer();
-    }
+        [SerializeField] private Vector3[] spawnPoints;
+        [SerializeField] private PhotonView photonView; // Asignar en el Inspector
 
-    private void SpawnPlayer()
-    {
-        int playerIndex = PhotonNetwork.CurrentRoom.PlayerCount -1;
-        if (playerIndex >= spawnPoints.Length)
-        {
-            MessagePanel.Instance.ShowMessage("La sala está llena!");
-            Debug.Log("No more players");
-            return;
-        }
-            
-        string prefabToInstantiate;
+        private string playerPrefab;
 
-        if (playerIndex == 0) // Primer jugador que entra
+        private void Start()
         {
-            // Elegir un prefab aleatorio y guardarlo en Custom Properties
-            prefabToInstantiate = Random.Range(0, 2) == 0 ? "Player1" : "Player2";
-            Hashtable properties = new Hashtable { { "SelectedPrefab", prefabToInstantiate } };
-            PhotonNetwork.CurrentRoom.SetCustomProperties(properties);
-        }
-        else // Segundo jugador
-        {
-            // Obtener el prefab del primer jugador y usar el otro
-            string firstPlayerPrefab = (string)PhotonNetwork.CurrentRoom.CustomProperties["SelectedPrefab"];
-            prefabToInstantiate = firstPlayerPrefab == "Player1" ? "Player2" : "Player1";
+            if (PhotonNetwork.IsMasterClient)
+            {
+                // Elige el prefab aleatoriamente
+                playerPrefab = Random.Range(0, 2) == 0 ? "Player1" : "Player2";
+
+                // Llama al RPC para sincronizar con el segundo jugador
+                photonView.RPC("SetPlayerPrefab", RpcTarget.OthersBuffered, playerPrefab);
+
+                // Genera al primer jugador
+                SpawnPlayer(0);
+            }
         }
 
-        Vector3 spawnPos = spawnPoints[playerIndex];
-        PhotonNetwork.Instantiate(prefabToInstantiate, spawnPos, Quaternion.identity, 0);
+        [PunRPC]
+        private void SetPlayerPrefab(string prefabName)
+        {
+            if (!PhotonNetwork.IsMasterClient)
+            {
+                // Asigna el prefab opuesto al segundo jugador
+                playerPrefab = (prefabName == "Player1") ? "Player2" : "Player1";
+                SpawnPlayer(1);
+            }
+        }
+
+        private void SpawnPlayer(int spawnIndex)
+        {
+            Vector3 spawnPos = spawnPoints[spawnIndex];
+            PhotonNetwork.Instantiate(playerPrefab, spawnPos, Quaternion.identity);
+        }
     }
 }
+    
+

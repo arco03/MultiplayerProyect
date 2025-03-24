@@ -2,7 +2,9 @@
 using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
+using Unity.Multiplayer.Playmode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace _scripts.Server
 {
@@ -43,6 +45,7 @@ namespace _scripts.Server
             base.OnCreatedRoom();
 
             print("Room Created!");
+            PhotonNetwork.LoadLevel("Load");
         }
 
         public override void OnCreateRoomFailed(short returnCode, string message)
@@ -57,7 +60,23 @@ namespace _scripts.Server
             base.OnJoinedRoom();
 
             print($"Has Connected To Room {PhotonNetwork.CurrentRoom.Name}!");
-            PhotonNetwork.LoadLevel("Game");
+            if (PhotonNetwork.CurrentRoom.PlayerCount == 2)
+            {
+                PhotonNetwork.LoadLevel("Game");
+            }
+            else
+            {
+                PhotonNetwork.LoadLevel("Load");
+            }
+        }
+
+        public override void OnPlayerEnteredRoom(Photon.Realtime.Player newPlayer)
+        {
+            base.OnPlayerEnteredRoom(newPlayer);
+            if (PhotonNetwork.CurrentRoom.PlayerCount == 2)
+            {
+                PhotonNetwork.LoadLevel("Game");
+            }
         }
 
         public override void OnJoinRoomFailed(short returnCode, string message)

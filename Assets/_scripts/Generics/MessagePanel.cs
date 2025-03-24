@@ -16,10 +16,11 @@ namespace _scripts.Generics
             if (Instance == null)
             {
                 Instance = this;
+                DontDestroyOnLoad(gameObject);
             }
             else
             {
-                Destroy(gameObject);
+                Destroy(gameObject); 
             }
 
             panelMessage.SetActive(false);
@@ -51,13 +52,21 @@ namespace _scripts.Generics
         {
             if (Instance == null)
             {
-                InstantiateFloatingWindow();
+                Debug.LogError("MessagePanel instance is null!");
+                return;
             }
+
             Instance.SetMessage(message);
         }
 
         private void SetMessage(string message)
         {
+            if (messageText == null || panelMessage == null)
+            {
+                Debug.LogError("messageText or panelMessage is not assigned!");
+                return;
+            }
+
             messageText.text = message;
             panelMessage.SetActive(true);
         }
